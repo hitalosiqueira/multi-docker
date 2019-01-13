@@ -1,0 +1,20 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t hitalosiqueira/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run hitalosiqueira/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t hitalosiqueira/multi-client ./client
+  - docker build -t hitalosiqueira/multi-nginx ./nginx
+  - docker build -t hitalosiqueira/multi-server ./server
+  - docker build -t hitalosiqueira/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push hitalosiqueira/multi-client
+  - docker push hitalosiqueira/multi-nginx
+  - docker push hitalosiqueira/multi-server
+  - docker push hitalosiqueira/multi-worker
